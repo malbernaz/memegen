@@ -42,7 +42,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
   });
   const { resetState, state, setState, undo, redo, index, lastIndex } =
     useStateHistory<fabric.Object[]>();
-  const hasStateBeenRestored = React.useRef(false);
+  const onGoingRestore = React.useRef(false);
 
   // initialize canvas
   React.useEffect(() => {
@@ -81,7 +81,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
     };
 
     const saveSnapshot = async () => {
-      if (hasStateBeenRestored.current) return;
+      if (onGoingRestore.current) return;
       setState(canvas.current?.toJSON()!.objects!);
     };
 
@@ -119,11 +119,11 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
 
           if (e.shiftKey) {
             if (index === lastIndex) return;
-            hasStateBeenRestored.current = true;
+            onGoingRestore.current = true;
             redo();
           } else {
             if (index === 0) return;
-            hasStateBeenRestored.current = true;
+            onGoingRestore.current = true;
             undo();
           }
         },
@@ -146,8 +146,9 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
           try {
             const newObjects = JSON.parse(item);
 
+            // make sure things aren't rendered until they are supposed to
             canvas.current.renderOnAddRemove = false;
-            hasStateBeenRestored.current = true;
+            onGoingRestore.current = true;
 
             // @ts-ignore = mismatching types between types and lib
             fabric.util.enlivenObjects(newObjects, (objs: fabric.Object[]) => {
@@ -170,7 +171,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
 
               canvas.current.renderAll();
               canvas.current.renderOnAddRemove = true;
-              hasStateBeenRestored.current = false;
+              onGoingRestore.current = false;
             });
           } catch {
             addText(item);
@@ -194,7 +195,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
 
   // restore history
   React.useEffect(() => {
-    if (!hasStateBeenRestored.current || !canvas.current) return;
+    if (!onGoingRestore.current || !canvas.current) return;
 
     canvas.current.renderOnAddRemove = false;
     canvas.current.remove(...canvas.current?.getObjects());
@@ -204,7 +205,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
       canvas.current.add(...objs);
       canvas.current.renderAll();
       canvas.current.renderOnAddRemove = true;
-      hasStateBeenRestored.current = false;
+      onGoingRestore.current = false;
     });
   }, [state]);
 
