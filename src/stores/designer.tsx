@@ -130,7 +130,9 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
           if (!hasModKey) return;
 
           navigator.clipboard.writeText(
-            JSON.stringify(canvas.current?.toJSON()?.objects ?? []),
+            JSON.stringify(
+              canvas.current?.getActiveObjects()?.map((o) => o.toJSON()) ?? [],
+            ),
           );
         },
         v: async () => {
