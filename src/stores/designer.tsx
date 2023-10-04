@@ -113,6 +113,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
       }
 
       const shortcuts: Record<string, () => any> = {
+        // undo/redo
         z: () => {
           if (!hasModKey) return;
 
@@ -126,6 +127,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
             undo();
           }
         },
+        // copy
         c: () => {
           if (!hasModKey) return;
 
@@ -135,6 +137,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
             ),
           );
         },
+        // paste
         v: async () => {
           if (!hasModKey || !canvas.current) return;
 
@@ -173,6 +176,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
             addText(item);
           }
         },
+        // delete
         Backspace: () => {
           canvas.current?.remove(...canvas.current.getActiveObjects());
         },
