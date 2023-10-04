@@ -9,19 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "fabric": "^5.3.0",
+    "lodash": "^4.17.21",
+    "next": "13.5.4",
     "react": "^18",
+    "react-colorful": "^5.6.1",
     "react-dom": "^18",
-    "next": "13.5.4"
+    "swr": "^2.2.4",
+    "usehooks-ts": "^2.9.1"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@types/fabric": "^5.3.4",
+    "@types/lodash": "^4.14.199",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10",
-    "postcss": "^8",
-    "tailwindcss": "^3",
     "eslint": "^8",
-    "eslint-config-next": "13.5.4"
+    "eslint-config-next": "13.5.4",
+    "postcss": "^8",
+    "prettier": "^3.0.3",
+    "prettier-plugin-tailwindcss": "^0.5.5",
+    "tailwindcss": "^3",
+    "typescript": "^5"
   }
 }
