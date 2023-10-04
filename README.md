@@ -2,7 +2,7 @@
 
 ## Getting Started
 
-Install dependencies with your package manager of choice and run dev server.
+Install dependencies with your package manager of choice and run the dev server.
 
 ```bash
 pnpm install
