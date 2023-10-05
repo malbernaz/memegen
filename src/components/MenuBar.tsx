@@ -8,12 +8,13 @@ const fontSizes = Array.from({ length: 16 }, (_, i) => (i + 2) * 4);
 const borderSizes = Array.from({ length: 17 }, (_, i) => i);
 
 export function MenuBar() {
-  const { handleOptionsChange, exportMeme, options, template } = useDesigner();
+  const { handleOptionsChange, exportMeme, options, template, loading } =
+    useDesigner();
 
   return (
     <div className="flex justify-between bg-neutral-900 py-2">
       <div className="px-4">
-        {template && (
+        {template && !loading && (
           <button onClick={exportMeme} className="font-semibold">
             Export
           </button>

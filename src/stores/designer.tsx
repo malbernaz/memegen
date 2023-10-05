@@ -23,6 +23,7 @@ const DesignerContext = React.createContext<null | {
   setTemplate: React.Dispatch<React.SetStateAction<ImageType | null>>;
   template: ImageType | null;
   shortcutRef: React.MutableRefObject<HTMLDivElement | null>;
+  loading: boolean;
 }>(null);
 
 export function useDesigner() {
@@ -51,18 +52,26 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
   const { resetState, state, setState, undo, redo, index, lastIndex } =
     useStateHistory<Object[]>();
   const onGoingRestore = React.useRef(false);
+  const [loading, setLoading] = React.useState(false);
 
   // initialize canvas
   React.useEffect(() => {
     (async () => {
       if (!canvasRef.current || !template) return;
 
+      setLoading(true);
+
       canvas.current = new Canvas(canvasRef.current, {
         preserveObjectStacking: true,
       });
+
       canvas.current.clear();
+
       await drawBackground(template, canvas.current);
+
       resetState([]);
+
+      setLoading(false);
     })();
 
     return () => {
@@ -219,6 +228,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
         template,
         setTemplate,
         shortcutRef,
+        loading,
       }}
     >
       {children}
