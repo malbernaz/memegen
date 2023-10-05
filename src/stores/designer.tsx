@@ -1,7 +1,13 @@
 "use client";
 
 import React from "react";
-import { fabric } from "fabric";
+import {
+  Canvas,
+  Textbox,
+  Object as FabricObject,
+  type TextboxProps,
+  util,
+} from "fabric";
 import pick from "lodash/pick";
 
 import useStateHistory from "@/hooks/stateHistory";
@@ -12,8 +18,8 @@ const DesignerContext = React.createContext<null | {
   addText: () => void;
   canvasRef: React.MutableRefObject<HTMLCanvasElement | null>;
   exportMeme: () => void;
-  handleOptionsChange: (newOptions: fabric.ITextboxOptions) => void;
-  options: fabric.ITextboxOptions;
+  handleOptionsChange: (newOptions: Partial<TextboxProps>) => void;
+  options: Partial<TextboxProps>;
   setTemplate: React.Dispatch<React.SetStateAction<ImageType | null>>;
   template: ImageType | null;
   shortcutRef: React.MutableRefObject<HTMLDivElement | null>;
@@ -32,10 +38,10 @@ export function useDesigner() {
 }
 
 export function DesignerProvider({ children }: React.PropsWithChildren) {
-  const canvas = React.useRef<null | fabric.Canvas>();
+  const canvas = React.useRef<null | Canvas>();
   const canvasRef = React.useRef<null | HTMLCanvasElement>(null);
   const [template, setTemplate] = React.useState<ImageType | null>(null);
-  const [options, setOptions] = React.useState<fabric.ITextboxOptions>({
+  const [options, setOptions] = React.useState<Partial<TextboxProps>>({
     fontSize: 32,
     fill: "#ffffff",
     stroke: "#000000",
@@ -43,15 +49,15 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
     fontFamily: "impact",
   });
   const { resetState, state, setState, undo, redo, index, lastIndex } =
-    useStateHistory<fabric.Object[]>();
+    useStateHistory<Object[]>();
   const onGoingRestore = React.useRef(false);
 
   // initialize canvas
   React.useEffect(() => {
-    if (!template) return;
-
     (async () => {
-      canvas.current = new fabric.Canvas(canvasRef.current, {
+      if (!canvasRef.current || !template) return;
+
+      canvas.current = new Canvas(canvasRef.current, {
         preserveObjectStacking: true,
       });
       canvas.current.clear();
@@ -68,7 +74,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
   React.useEffect(() => {
     if (!canvas.current) return;
 
-    const updateOptions = (e: fabric.IEvent<Event>) => {
+    const updateOptions = (e: { selected: FabricObject[] }) => {
       if (e.selected?.length !== 1) return;
 
       handleOptionsChange(
@@ -95,13 +101,9 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
       "object:modified": saveSnapshot,
     };
 
-    // @ts-ignore - the library types are wrong here. `on` accepts a eventsMap
     canvas.current.on(eventsMap);
 
-    return () => {
-      // @ts-ignore
-      canvas.current?.off(eventsMap);
-    };
+    return () => canvas.current?.off(eventsMap);
   });
 
   const shortcutRef = useShortcuts(
@@ -137,35 +139,19 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
         const item = await navigator.clipboard.readText();
 
         try {
-          const newObjects = JSON.parse(item);
+          const json = JSON.parse(item);
 
-          // make sure things aren't rendered until they are supposed to
-          canvas.current.renderOnAddRemove = false;
-          onGoingRestore.current = true;
+          const newObjects = await util.enlivenObjects<FabricObject>(json);
 
-          // @ts-ignore = mismatching types between types and lib
-          fabric.util.enlivenObjects(newObjects, (objs: fabric.Object[]) => {
-            if (!canvas.current) return;
+          for (const o of newObjects) {
+            Object.assign(o, {
+              top: (o.top ?? 0) + 10,
+              left: (o.left ?? 0) + 10,
+            });
+          }
 
-            for (const o of objs) {
-              o.setOptions({
-                top: (o.top ?? 0) + 10,
-                left: (o.left ?? 0) + 10,
-              });
-
-              canvas.current.add(...objs);
-            }
-
-            const lastItem = objs.at(-1);
-
-            if (lastItem) {
-              canvas.current.setActiveObject(lastItem);
-            }
-
-            canvas.current.renderAll();
-            canvas.current.renderOnAddRemove = true;
-            onGoingRestore.current = false;
-          });
+          canvas.current.add(...newObjects);
+          canvas.current.setActiveObject(newObjects.at(-1)!);
         } catch {
           addText(item);
         }
@@ -182,32 +168,34 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
 
   // restore history
   React.useEffect(() => {
-    if (!onGoingRestore.current || !canvas.current) return;
+    (async () => {
+      if (!onGoingRestore.current || !canvas.current) return;
 
-    canvas.current.renderOnAddRemove = false;
-    canvas.current.remove(...canvas.current?.getObjects());
-    // @ts-ignore - enlivenObjects types don't metch lib real signature
-    fabric.util.enlivenObjects(state, (objs: fabric.Object[]) => {
-      if (!canvas.current) return;
-      canvas.current.add(...objs);
+      canvas.current.renderOnAddRemove = false;
+      canvas.current.remove(...canvas.current?.getObjects());
+
+      const newObjects = await util.enlivenObjects<FabricObject>(state);
+
+      canvas.current.add(...newObjects);
       canvas.current.renderAll();
+
       canvas.current.renderOnAddRemove = true;
       onGoingRestore.current = false;
-    });
+    })();
   }, [state]);
 
   const addText = React.useCallback(
     (text = "WRITE SOMETHING :)") => {
-      canvas.current?.add(new fabric.Textbox(text, options));
+      canvas.current?.add(new Textbox(text, options));
     },
     [options],
   );
 
   const handleOptionsChange = React.useCallback(
-    (newOptions: fabric.ITextboxOptions) => {
+    (newOptions: Partial<TextboxProps>) => {
       canvas.current
         ?.getActiveObjects()
-        ?.forEach((o) => o.setOptions(newOptions));
+        ?.forEach((o) => Object.assign(o, newOptions));
 
       canvas.current?.renderAll();
 

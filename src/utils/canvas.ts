@@ -1,7 +1,8 @@
 "use client";
 
-import { fabric } from "fabric";
+import { Canvas, Image } from "fabric";
 
+// utility function to avoid cors issues with the image url
 async function getImgDataURL(url: string): Promise<string> {
   return new Promise(async (resolve) => {
     const res = await fetch(url);
@@ -20,41 +21,26 @@ export type ImageType = {
   height: number;
 };
 
-export function drawBackground(bg: ImageType, canvas: fabric.Canvas) {
-  return new Promise(async (resolve) => {
-    // using this utility function to avoid cors issues with the image url
-    fabric.Image.fromURL(await getImgDataURL(bg.url), (img) => {
-      const width = 480;
-      const height = width * (bg.height / bg.width);
+export async function drawBackground(bg: ImageType, canvas: Canvas) {
+  const img = await Image.fromURL(await getImgDataURL(bg.url), undefined, {});
 
-      canvas.setDimensions({ width, height });
-      canvas.setBackgroundImage(
-        img,
-        () => {
-          canvas.renderAll();
-          resolve(canvas);
-        },
-        {
-          scaleX: canvas.width! / img.width!,
-          scaleY: canvas.height! / img.height!,
-        },
-      );
-    });
-  });
+  const width = 480;
+  const height = width * (bg.height / bg.width);
+
+  canvas.setDimensions({ width, height });
+
+  img.scaleX = canvas.width / img.width;
+  img.scaleY = canvas.height / img.height;
+
+  canvas.backgroundImage = img;
 }
 
-export function exportCanvas(canvas: fabric.Canvas) {
+export function exportCanvas(canvas: Canvas) {
   const link = document.createElement("a");
 
   link.download = "meme.png";
 
-  link.href = canvas.toDataURL({
-    width: canvas.width,
-    height: canvas.height,
-    left: 0,
-    top: 0,
-    format: "png",
-  });
+  link.href = canvas.toDataURL();
 
   link.click();
 }
