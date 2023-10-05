@@ -11,7 +11,7 @@ export function MenuBar() {
   const { handleOptionsChange, exportMeme, options, template } = useDesigner();
 
   return (
-    <div className="flex justify-between bg-neutral-900 py-2 text-xs">
+    <div className="flex justify-between bg-neutral-900 py-2">
       <div className="px-4">
         {template && (
           <button onClick={exportMeme} className="font-semibold">
