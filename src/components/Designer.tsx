@@ -20,7 +20,7 @@ export function Designer() {
         </div>
         {template && !loading && (
           <button
-            className="fixed bottom-4 right-4 rounded border border-neutral-600 bg-neutral-900 px-2 py-1 text-sm font-semibold"
+            className="fixed bottom-4 right-4 rounded border border-neutral-600 bg-neutral-900 py-2 px-3 font-semibold"
             onClick={() => addText()}
           >
             Add Caption

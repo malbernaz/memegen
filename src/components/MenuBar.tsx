@@ -24,7 +24,7 @@ export function MenuBar() {
         <div className="flex items-center gap-2 px-4">
           <span className="font-semibold">Font:</span>
           <select
-            className="bg-transparent text-neutral-200"
+            className="bg-transparent text-neutral-300"
             value={options.fontFamily}
             onChange={(e) =>
               handleOptionsChange({ fontFamily: e.target.value })
@@ -34,7 +34,7 @@ export function MenuBar() {
             <option value="arial">Arial</option>
           </select>
           <select
-            className="bg-transparent text-neutral-200"
+            className="bg-transparent text-neutral-300"
             value={options.fontSize}
             onChange={(e) =>
               handleOptionsChange({ fontSize: parseInt(e.target.value) })
@@ -68,7 +68,7 @@ export function MenuBar() {
         <div className="flex items-center gap-2 px-4">
           <span className="font-semibold">Border:</span>
           <select
-            className="bg-transparent text-neutral-200"
+            className="bg-transparent text-neutral-300"
             value={options.strokeWidth}
             onChange={(e) =>
               handleOptionsChange({ strokeWidth: parseInt(e.target.value) })
