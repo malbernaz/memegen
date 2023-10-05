@@ -29,7 +29,7 @@ export function SearchBar() {
           <span className="sr-only">Search for popular memes</span>
           <input
             id="search"
-            className="w-full rounded border border-neutral-700 bg-transparent px-2 py-1 text-sm outline-0"
+            className="w-full rounded border border-neutral-700 bg-transparent px-2 py-1 outline-0"
             placeholder="One does not simply..."
             type="text"
             value={filter}
