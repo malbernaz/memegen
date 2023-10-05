@@ -153,10 +153,8 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
           const newObjects = await util.enlivenObjects<FabricObject>(json);
 
           for (const o of newObjects) {
-            Object.assign(o, {
-              top: (o.top ?? 0) + 10,
-              left: (o.left ?? 0) + 10,
-            });
+            o.set("top", (o.top ?? 0) + 10);
+            o.set("left", (o.left ?? 0) + 10);
           }
 
           canvas.current.add(...newObjects);
@@ -202,9 +200,11 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
 
   const handleOptionsChange = React.useCallback(
     (newOptions: Partial<TextboxProps>) => {
-      canvas.current
-        ?.getActiveObjects()
-        ?.forEach((o) => Object.assign(o, newOptions));
+      canvas.current?.getActiveObjects()?.forEach((o) => {
+        for (const [k, v] of Object.entries(newOptions)) {
+          o.set(k, v);
+        }
+      });
 
       canvas.current?.renderAll();
 
