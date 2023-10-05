@@ -166,6 +166,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
       // delete
       Backspace: () => {
         canvas.current?.remove(...canvas.current.getActiveObjects());
+        canvas.current?.discardActiveObject();
       },
     },
     {
