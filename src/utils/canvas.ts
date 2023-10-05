@@ -24,7 +24,7 @@ export type ImageType = {
 export async function drawBackground(bg: ImageType, canvas: Canvas) {
   const img = await Image.fromURL(await getImgDataURL(bg.url), undefined, {});
 
-  const width = 480;
+  const width = 600;
   const height = width * (bg.height / bg.width);
 
   canvas.setDimensions({ width, height });
