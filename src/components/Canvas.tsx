@@ -14,7 +14,7 @@ export function Canvas() {
       >
         <canvas
           ref={canvasRef}
-          className="overflow-hidden rounded border border-neutral-700"
+          className="overflow-hidden rounded border border-neutral-700 shadow-md"
         />
       </div>
       {loading && "Loading template..."}

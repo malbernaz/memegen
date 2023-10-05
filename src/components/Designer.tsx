@@ -11,7 +11,7 @@ export function Designer() {
   return (
     <div className="grid h-screen grid-cols-[300px_1fr]">
       <SearchBar />
-      <div className="relative grid h-screen grid-rows-[auto_1fr] overflow-y-auto bg-neutral-800">
+      <div className="relative grid h-screen grid-rows-[auto_1fr] overflow-y-auto bg-neutral-800 shadow-inner">
         <div className="sticky top-0 z-10 border-b border-b-neutral-600">
           <MenuBar />
         </div>
@@ -20,7 +20,7 @@ export function Designer() {
         </div>
         {template && !loading && (
           <button
-            className="fixed bottom-4 right-4 rounded border border-neutral-600 bg-neutral-900 py-2 px-3 font-semibold"
+            className="fixed bottom-4 right-4 rounded border border-neutral-600 bg-neutral-900 px-3 py-2 font-semibold"
             onClick={() => addText()}
           >
             Add Caption
