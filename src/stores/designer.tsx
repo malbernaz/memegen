@@ -6,6 +6,7 @@ import pick from "lodash/pick";
 
 import useStateHistory from "@/hooks/stateHistory";
 import { drawBackground, exportCanvas, ImageType } from "@/utils/canvas";
+import { useShortcuts } from "@/hooks/useShortcuts";
 
 const DesignerContext = React.createContext<null | {
   addText: () => void;
@@ -15,6 +16,7 @@ const DesignerContext = React.createContext<null | {
   options: fabric.ITextboxOptions;
   setTemplate: React.Dispatch<React.SetStateAction<ImageType | null>>;
   template: ImageType | null;
+  shortcutRef: React.MutableRefObject<HTMLDivElement | null>;
 }>(null);
 
 export function useDesigner() {
@@ -102,96 +104,81 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
     };
   });
 
-  // bind shortcuts
-  React.useEffect(() => {
-    const bindShortcuts = (e: KeyboardEvent) => {
-      const hasModKey = e.ctrlKey || e.metaKey;
+  const shortcutRef = useShortcuts(
+    {
+      // undo/redo
+      z: (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
 
-      // early return if a text box is being edited
-      if ((canvas.current?.getActiveObject() as any)?.isEditing) {
-        return;
-      }
+        if (e.shiftKey) {
+          if (index === lastIndex) return;
+          onGoingRestore.current = true;
+          redo();
+        } else {
+          if (index === 0) return;
+          onGoingRestore.current = true;
+          undo();
+        }
+      },
+      // copy
+      c: (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return;
 
-      const shortcuts: Record<string, () => any> = {
-        // undo/redo
-        z: () => {
-          if (!hasModKey) return;
+        navigator.clipboard.writeText(
+          JSON.stringify(
+            canvas.current?.getActiveObjects()?.map((o) => o.toJSON()) ?? [],
+          ),
+        );
+      },
+      // paste
+      v: async (e) => {
+        if (!(e.ctrlKey || e.metaKey) || !canvas.current) return;
 
-          if (e.shiftKey) {
-            if (index === lastIndex) return;
-            onGoingRestore.current = true;
-            redo();
-          } else {
-            if (index === 0) return;
-            onGoingRestore.current = true;
-            undo();
-          }
-        },
-        // copy
-        c: () => {
-          if (!hasModKey) return;
+        const item = await navigator.clipboard.readText();
 
-          navigator.clipboard.writeText(
-            JSON.stringify(
-              canvas.current?.getActiveObjects()?.map((o) => o.toJSON()) ?? [],
-            ),
-          );
-        },
-        // paste
-        v: async () => {
-          if (!hasModKey || !canvas.current) return;
+        try {
+          const newObjects = JSON.parse(item);
 
-          const item = await navigator.clipboard.readText();
+          // make sure things aren't rendered until they are supposed to
+          canvas.current.renderOnAddRemove = false;
+          onGoingRestore.current = true;
 
-          try {
-            const newObjects = JSON.parse(item);
+          // @ts-ignore = mismatching types between types and lib
+          fabric.util.enlivenObjects(newObjects, (objs: fabric.Object[]) => {
+            if (!canvas.current) return;
 
-            // make sure things aren't rendered until they are supposed to
-            canvas.current.renderOnAddRemove = false;
-            onGoingRestore.current = true;
+            for (const o of objs) {
+              o.setOptions({
+                top: (o.top ?? 0) + 10,
+                left: (o.left ?? 0) + 10,
+              });
 
-            // @ts-ignore = mismatching types between types and lib
-            fabric.util.enlivenObjects(newObjects, (objs: fabric.Object[]) => {
-              if (!canvas.current) return;
+              canvas.current.add(...objs);
+            }
 
-              for (const o of objs) {
-                o.setOptions({
-                  top: (o.top ?? 0) + 10,
-                  left: (o.left ?? 0) + 10,
-                });
+            const lastItem = objs.at(-1);
 
-                canvas.current.add(...objs);
-              }
+            if (lastItem) {
+              canvas.current.setActiveObject(lastItem);
+            }
 
-              const lastItem = objs.at(-1);
-
-              if (lastItem) {
-                canvas.current.setActiveObject(lastItem);
-              }
-
-              canvas.current.renderAll();
-              canvas.current.renderOnAddRemove = true;
-              onGoingRestore.current = false;
-            });
-          } catch {
-            addText(item);
-          }
-        },
-        // delete
-        Backspace: () => {
-          canvas.current?.remove(...canvas.current.getActiveObjects());
-        },
-      };
-
-      shortcuts[e.key]?.();
-    };
-
-    window.addEventListener("keydown", bindShortcuts);
-
-    return () => {
-      window.removeEventListener("keydown", bindShortcuts);
-    };
-  });
+            canvas.current.renderAll();
+            canvas.current.renderOnAddRemove = true;
+            onGoingRestore.current = false;
+          });
+        } catch {
+          addText(item);
+        }
+      },
+      // delete
+      Backspace: () => {
+        canvas.current?.remove(...canvas.current.getActiveObjects());
+      },
+    },
+    {
+      enabled: !(canvas.current?.getActiveObject() as any)?.isEditing,
+    },
+  );
 
   // restore history
   React.useEffect(() => {
@@ -243,6 +230,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
         exportMeme,
         template,
         setTemplate,
+        shortcutRef,
       }}
     >
       {children}

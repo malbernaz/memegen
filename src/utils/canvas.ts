@@ -23,7 +23,7 @@ export type ImageType = {
 export function drawBackground(bg: ImageType, canvas: fabric.Canvas) {
   return new Promise(async (resolve) => {
     // using this utility function to avoid cors issues with the image url
-    fabric.Image.fromURL(await getImgDataURL(bg.url), function (img) {
+    fabric.Image.fromURL(await getImgDataURL(bg.url), (img) => {
       const width = 480;
       const height = width * (bg.height / bg.width);
 
