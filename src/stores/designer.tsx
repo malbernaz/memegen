@@ -2,16 +2,21 @@
 
 import React from "react";
 import {
+  type TextboxProps,
   Canvas,
   Textbox,
   Object as FabricObject,
-  type TextboxProps,
   util,
 } from "fabric";
 import pick from "lodash/pick";
 
 import useStateHistory from "@/hooks/stateHistory";
-import { drawBackground, exportCanvas, ImageType } from "@/utils/canvas";
+import {
+  addControls,
+  drawBackground,
+  exportCanvas,
+  ImageType,
+} from "@/utils/canvas";
 import { useShortcuts } from "@/hooks/useShortcuts";
 
 const DesignerContext = React.createContext<null | {
@@ -43,7 +48,9 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
   const canvasRef = React.useRef<null | HTMLCanvasElement>(null);
   const [template, setTemplate] = React.useState<ImageType | null>(null);
   const [options, setOptions] = React.useState<Partial<TextboxProps>>({
-    fontSize: 32,
+    fontSize: 68,
+    lineHeight: 1,
+    textAlign: "center",
     fill: "#ffffff",
     stroke: "#000000",
     strokeWidth: 2,
@@ -155,12 +162,63 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
           for (const o of newObjects) {
             o.set("top", (o.top ?? 0) + 10);
             o.set("left", (o.left ?? 0) + 10);
+            addControls(o);
           }
 
           canvas.current.add(...newObjects);
           canvas.current.setActiveObject(newObjects.at(-1)!);
         } catch {
           addText(item);
+        }
+      },
+      // increase font size
+      "=": (e) => {
+        if (!(e.ctrlKey || e.metaKey) || !canvas.current) return;
+
+        const objs = canvas.current.getActiveObjects() ?? [];
+
+        for (const obj of objs) {
+          const fontSize = obj.get("fontSize");
+
+          if (fontSize < 68) {
+            obj.set("fontSize", fontSize + 4);
+          }
+        }
+
+        const lastObj = objs.at(-1);
+
+        if (lastObj) {
+          setOptions((options) => ({
+            ...options,
+            fontSize: lastObj.get("fontSize"),
+          }));
+
+          canvas.current.renderAll();
+        }
+      },
+      // decrease font size
+      "-": (e) => {
+        if (!(e.ctrlKey || e.metaKey) || !canvas.current) return;
+
+        const objs = canvas.current.getActiveObjects() ?? [];
+
+        for (const obj of objs) {
+          const fontSize = obj.get("fontSize");
+
+          if (fontSize > 8) {
+            obj.set("fontSize", fontSize - 4);
+          }
+        }
+
+        const lastObj = objs.at(-1);
+
+        if (lastObj) {
+          setOptions((options) => ({
+            ...options,
+            fontSize: lastObj.get("fontSize"),
+          }));
+
+          canvas.current.renderAll();
         }
       },
       // delete
@@ -184,7 +242,11 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
 
       const newObjects = await util.enlivenObjects<FabricObject>(state);
 
-      canvas.current.add(...newObjects);
+      for (const obj of newObjects) {
+        addControls(obj);
+        canvas.current.add(obj);
+      }
+
       canvas.current.renderAll();
 
       canvas.current.renderOnAddRemove = true;
@@ -194,7 +256,9 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
 
   const addText = React.useCallback(
     (text = "WRITE SOMETHING :)") => {
-      canvas.current?.add(new Textbox(text, options));
+      const newText = new Textbox(text, { ...options, width: 600 });
+      addControls(newText);
+      canvas.current?.add(newText);
     },
     [options],
   );

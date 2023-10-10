@@ -22,9 +22,11 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
   - border color
 - Undo Redo Functionality
 - Keyboard shortcuts
-  - `ctrl-z` - undo
-  - `ctrl-shift-z` - redo
-  - `ctrl-c` - copy
-  - `ctrl-v` - paste
+  - `ctrl z` - undo
+  - `ctrl shift z` - redo
+  - `ctrl c` - copy
+  - `ctrl v` - paste
   - `backspace` - delete text
+  - `ctrl =` - increase text size
+  - `ctrl -` - decrease text size
 - Export meme

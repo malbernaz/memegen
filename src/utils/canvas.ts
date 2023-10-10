@@ -1,6 +1,6 @@
 "use client";
 
-import { Canvas, Image } from "fabric";
+import { Canvas, Image, Object as FabricObject, controlsUtils } from "fabric";
 
 // utility function to avoid cors issues with the image url
 async function getImgDataURL(url: string): Promise<string> {
@@ -43,4 +43,11 @@ export function exportCanvas(canvas: Canvas) {
   link.href = canvas.toDataURL();
 
   link.click();
+}
+
+export function addControls(obj: FabricObject) {
+  obj.controls = {
+    ...controlsUtils.createResizeControls(),
+    mtr: obj.controls.mtr,
+  };
 }
