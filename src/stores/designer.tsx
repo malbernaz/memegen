@@ -57,7 +57,7 @@ export function DesignerProvider({ children }: React.PropsWithChildren) {
     fontFamily: "impact",
   });
   const { resetState, state, setState, undo, redo, index, lastIndex } =
-    useStateHistory<Object[]>();
+    useStateHistory<FabricObject[]>();
   const onGoingRestore = React.useRef(false);
   const [loading, setLoading] = React.useState(false);
 

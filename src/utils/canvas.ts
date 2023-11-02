@@ -6,12 +6,12 @@ import { Canvas, Image, Object as FabricObject, controlsUtils } from "fabric";
 async function getImgDataURL(url: string): Promise<string> {
   return new Promise(async (resolve) => {
     const res = await fetch(url);
-    const img = await res.blob();
+    const imgBlob = await res.blob();
     const reader = new FileReader();
 
     reader.onload = () => resolve(reader.result as string);
 
-    reader.readAsDataURL(img);
+    reader.readAsDataURL(imgBlob);
   });
 }
 
@@ -39,10 +39,10 @@ export function exportCanvas(canvas: Canvas) {
   const link = document.createElement("a");
 
   link.download = "meme.png";
-
   link.href = canvas.toDataURL();
 
   link.click();
+  link.remove();
 }
 
 export function addControls(obj: FabricObject) {
